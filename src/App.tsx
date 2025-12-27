@@ -114,7 +114,7 @@ export default function App() {
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { width: 1280, height: 720, facingMode: 'user' } 
+        video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' } 
       });
       if (videoRef.current) videoRef.current.srcObject = stream;
     } catch (err) { console.error(err); }
@@ -142,14 +142,12 @@ export default function App() {
       if (videoRef.current && canvasRef.current) {
         const ctx = canvasRef.current.getContext('2d');
         if (ctx) {
-          // Fixed aspect ratio capture to match layout (4:3)
           canvasRef.current.width = 1000;
           canvasRef.current.height = 750;
           ctx.save();
           ctx.translate(1000, 0);
           ctx.scale(-1, 1);
           
-          // Center-crop video to 4:3
           const vW = videoRef.current.videoWidth;
           const vH = videoRef.current.videoHeight;
           const targetRatio = 4/3;
@@ -185,16 +183,13 @@ export default function App() {
     const headerH = 70;
     const footerH = 100;
     
-    // Calculate total height based on actual number of photos taken
     const totalH = headerH + (photoH + gap) * layoutCount + footerH;
     canvas.width = W;
     canvas.height = totalH;
 
-    // Background
     ctx.fillStyle = customBg;
     ctx.fillRect(0, 0, W, totalH);
 
-    // Motif Pattern (Filled more densely)
     ctx.globalAlpha = 0.12;
     ctx.font = '30px serif';
     for (let x = 0; x < W + 50; x += 60) {
@@ -204,7 +199,6 @@ export default function App() {
     }
     ctx.globalAlpha = 1.0;
 
-    // Render Photos
     for (let i = 0; i < layoutCount; i++) {
       if (photos[i]) {
         const img = new Image();
@@ -214,13 +208,11 @@ export default function App() {
       }
     }
 
-    // Stickers
     ctx.font = '45px serif';
     for (const s of stickers) {
         ctx.fillText(s.icon, (s.x / 100) * W, (s.y / 100) * totalH);
     }
 
-    // Small Watermark Footer (Positioned at corner)
     ctx.fillStyle = activePreset.textColor;
     if (activePreset.spotify) {
         ctx.fillRect(padding, totalH - 60, photoW, 2);
@@ -244,22 +236,22 @@ export default function App() {
 
   if (view === 'home') {
     return (
-      <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center p-8">
-        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="text-center">
-          <h1 className="text-7xl font-black italic mb-2">Kawaibooth</h1>
-          <p className="text-[9px] tracking-[1em] uppercase text-stone-400 mb-16">Premium Digital Photostrip</p>
+      <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center p-6 sm:p-8">
+        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="text-center w-full max-w-5xl">
+          <h1 className="text-5xl sm:text-7xl font-black italic mb-2 tracking-tighter">Kawaibooth</h1>
+          <p className="text-[8px] sm:text-[9px] tracking-[0.5em] sm:tracking-[1em] uppercase text-stone-400 mb-12 sm:mb-16">Premium Digital Photostrip</p>
           
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 max-w-5xl">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
             {(Object.keys(CATEGORIES) as Category[]).map(cat => (
               <button 
                 key={cat}
                 onClick={() => { setActiveCategory(cat); setActivePreset(PRESETS[cat][0]); setView('studio'); startCamera(); }}
-                className="group flex flex-col items-center gap-4 p-8 rounded-[3rem] bg-white border border-stone-100 hover:border-black transition-all hover:-translate-y-2 shadow-sm hover:shadow-xl"
+                className="group flex flex-col items-center gap-3 sm:gap-4 p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] bg-white border border-stone-100 hover:border-black transition-all active:scale-95 shadow-sm hover:shadow-xl"
               >
-                <div className="w-16 h-16 rounded-full flex items-center justify-center bg-stone-50 group-hover:bg-black group-hover:text-white transition-colors">
-                  {React.createElement(CATEGORIES[cat].icon, { size: 24 })}
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center bg-stone-50 group-hover:bg-black group-hover:text-white transition-colors">
+                  {React.createElement(CATEGORIES[cat].icon, { size: 20 })}
                 </div>
-                <span className="text-[10px] font-bold tracking-widest uppercase">{cat}</span>
+                <span className="text-[9px] sm:text-[10px] font-bold tracking-widest uppercase">{cat}</span>
               </button>
             ))}
           </div>
@@ -269,32 +261,32 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen bg-stone-100 flex overflow-hidden font-sans text-zinc-900">
+    <div className="h-screen bg-stone-100 flex flex-col md:flex-row overflow-hidden font-sans text-zinc-900">
       {/* LEFT: CAMERA AREA */}
-      <div className="flex-1 relative flex flex-col border-r bg-white">
-        <div className="p-4 border-b flex justify-between items-center bg-white z-20">
+      <div className="flex-1 relative flex flex-col border-r bg-white min-h-[50vh] md:min-h-0">
+        <div className="p-3 sm:p-4 border-b flex justify-between items-center bg-white z-20">
             <button onClick={() => setView('home')} className="p-2 hover:bg-stone-100 rounded-full transition-colors"><ChevronLeft size={20}/></button>
-            <div className="flex gap-2">
+            <div className="flex gap-1 sm:gap-2">
                {[1, 2, 4, 6, 8].map(n => (
                  <button 
                   key={n} 
                   onClick={() => {setLayoutCount(n); setPhotos([])}}
-                  className={`text-[10px] font-black w-10 h-10 rounded-full border transition-all ${layoutCount === n ? 'bg-black text-white border-black' : 'bg-stone-50 border-stone-100 text-stone-400'}`}
+                  className={`text-[9px] sm:text-[10px] font-black w-8 h-8 sm:w-10 sm:h-10 rounded-full border transition-all ${layoutCount === n ? 'bg-black text-white border-black' : 'bg-stone-50 border-stone-100 text-stone-400'}`}
                  >
                    {n}
                  </button>
                ))}
             </div>
-            <div className="w-10" />
+            <div className="w-10 hidden sm:block" />
         </div>
 
-        <div className="flex-1 flex items-center justify-center p-8 bg-stone-50 relative">
-          <div className="relative w-full max-w-2xl aspect-[4/3] bg-black rounded-[2.5rem] overflow-hidden shadow-2xl">
+        <div className="flex-1 flex items-center justify-center p-4 sm:p-8 bg-stone-50 relative overflow-hidden">
+          <div className="relative w-full max-w-2xl aspect-[4/3] bg-black rounded-3xl sm:rounded-[2.5rem] overflow-hidden shadow-2xl">
             <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover scale-x-[-1]" />
             <AnimatePresence>
               {timer !== null && (
                 <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 1.5, opacity: 0 }} className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-30">
-                  <span className="text-[10rem] font-black italic text-white drop-shadow-2xl">{timer}</span>
+                  <span className="text-8xl sm:text-[10rem] font-black italic text-white drop-shadow-2xl">{timer}</span>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -302,45 +294,46 @@ export default function App() {
           </div>
         </div>
 
-        <div className="h-28 bg-white border-t flex items-center justify-center gap-8 px-8">
-           <button onClick={() => setPhotos([])} className="p-3 rounded-full hover:bg-red-50 text-stone-300 hover:text-red-400 transition-colors"><RefreshCcw size={20}/></button>
+        {/* PHOTO PREVIEW RAIL */}
+        <div className="h-24 sm:h-28 bg-white border-t flex items-center justify-between px-4 sm:px-8 gap-4 overflow-x-auto no-scrollbar">
+           <button onClick={() => setPhotos([])} className="p-3 shrink-0 rounded-full hover:bg-red-50 text-stone-300 hover:text-red-400 transition-colors"><RefreshCcw size={18}/></button>
            
            <button 
              onClick={handleCaptureRequest}
              disabled={photos.length >= layoutCount || timer !== null}
-             className="w-20 h-20 rounded-full bg-black text-white flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-20"
+             className="w-14 h-14 sm:w-18 sm:h-18 shrink-0 rounded-full bg-black text-white flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-20"
            >
-             <Camera size={32} />
+             <Camera size={24} />
            </button>
 
-           <div className="flex -space-x-3 overflow-hidden">
+           <div className="flex -space-x-2 sm:-space-x-3 overflow-hidden shrink-0">
               {photos.map((p, i) => (
-                <div key={i} className="w-12 h-12 rounded-lg border-2 border-white bg-stone-200 overflow-hidden shadow-sm">
+                <div key={i} className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border-2 border-white bg-stone-200 overflow-hidden shadow-sm">
                   <img src={p} className="w-full h-full object-cover" />
                 </div>
               ))}
               {Array.from({length: Math.max(0, layoutCount - photos.length)}).map((_, i) => (
-                <div key={i} className="w-12 h-12 rounded-lg border-2 border-dashed border-stone-200 bg-stone-50" />
+                <div key={i} className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border-2 border-dashed border-stone-200 bg-stone-50" />
               ))}
            </div>
         </div>
       </div>
 
       {/* RIGHT: CUSTOMIZER AREA */}
-      <div className="w-[450px] bg-white flex flex-col shadow-2xl z-10">
-        <div className="flex-1 overflow-y-auto p-8 space-y-10 no-scrollbar">
+      <div className="w-full md:w-[450px] bg-white flex flex-col shadow-2xl z-10 overflow-y-auto no-scrollbar pb-10 md:pb-0">
+        <div className="flex-1 p-6 sm:p-8 space-y-8 sm:space-y-10">
           
-          {/* PREVIEW TICKET */}
-          <div className="flex justify-center">
+          {/* PREVIEW TICKET (Scrollable on Mobile) */}
+          <div className="flex justify-center sticky top-0 md:relative z-30 bg-white/80 backdrop-blur-md md:bg-transparent py-4 md:py-0 rounded-b-3xl">
             <div 
-              className="w-[260px] p-6 shadow-2xl relative transition-all duration-500 origin-top"
+              className="w-[200px] sm:w-[260px] p-4 sm:p-6 shadow-2xl relative transition-all duration-500 origin-top"
               style={{ backgroundColor: customBg }}
             >
-                <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 flex flex-wrap gap-4 p-4 text-xl">
+                <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 flex flex-wrap gap-2 sm:gap-4 p-4 text-lg sm:text-xl">
                    {Array.from({length: 40}).map((_, i) => <span key={i}>{activePreset.pattern}</span>)}
                 </div>
 
-                <div className="space-y-3 relative z-10">
+                <div className="space-y-2 sm:space-y-3 relative z-10">
                     {Array.from({length: layoutCount}).map((_, i) => (
                       <div key={i} className="aspect-[4/3] bg-black/5 rounded-sm overflow-hidden relative group">
                          {photos[i] ? (
@@ -356,23 +349,23 @@ export default function App() {
                 </div>
 
                 {stickers.map(s => (
-                    <motion.div drag dragMomentum={false} key={s.id} className="absolute text-4xl z-20 cursor-move" style={{ top: `${s.y}%`, left: `${s.x}%` }}>
+                    <motion.div drag dragMomentum={false} key={s.id} className="absolute text-3xl sm:text-4xl z-20 cursor-move" style={{ top: `${s.y}%`, left: `${s.x}%` }}>
                         {s.icon}
                     </motion.div>
                 ))}
 
-                <div className="mt-8 relative" style={{ color: activePreset.textColor }}>
+                <div className="mt-6 sm:mt-8 relative" style={{ color: activePreset.textColor }}>
                     {activePreset.spotify ? (
                         <div className="opacity-80">
                              <div className="h-0.5 w-full bg-current/20 mb-2" />
                              <div className="flex justify-between items-center">
-                                <span className="text-[8px] font-bold tracking-tighter">KAWAIBOOTH PLAYER</span>
+                                <span className="text-[7px] sm:text-[8px] font-bold tracking-tighter">KAWAIBOOTH PLAYER</span>
                                 <Music size={10} />
                              </div>
                         </div>
                     ) : (
                         <div className="text-right">
-                            <p className="text-sm font-serif italic font-black">Kawaibooth</p>
+                            <p className="text-xs sm:text-sm font-serif italic font-black leading-none">Kawaibooth</p>
                             <p className="text-[5px] uppercase tracking-widest opacity-40">Archive C 2025</p>
                         </div>
                     )}
@@ -381,7 +374,7 @@ export default function App() {
           </div>
 
           {/* CONTROLS */}
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             <section>
                 <h3 className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-4">Tema: {activeCategory}</h3>
                 <div className="grid grid-cols-2 gap-2">
@@ -389,7 +382,7 @@ export default function App() {
                         <button 
                             key={p.id} 
                             onClick={() => setActivePreset(p)}
-                            className={`px-4 py-3 rounded-2xl text-[10px] font-bold border transition-all ${activePreset.id === p.id ? 'bg-black text-white border-black shadow-lg' : 'bg-stone-50 border-stone-100 text-stone-400'}`}
+                            className={`px-3 py-3 rounded-2xl text-[9px] sm:text-[10px] font-bold border transition-all active:scale-95 ${activePreset.id === p.id ? 'bg-black text-white border-black shadow-lg' : 'bg-stone-50 border-stone-100 text-stone-400'}`}
                         >
                             {p.name}
                         </button>
@@ -397,7 +390,7 @@ export default function App() {
                 </div>
             </section>
 
-            <section className="bg-stone-50 p-6 rounded-[2rem] border border-stone-100">
+            <section className="bg-stone-50 p-5 rounded-[1.5rem] border border-stone-100">
                 <div className="flex items-center justify-between mb-4">
                     <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">Warna Frame</span>
                     <button onClick={() => setShowColorPicker(!showColorPicker)} className="text-[10px] font-black text-rose-500 uppercase">{showColorPicker ? 'Tutup' : 'Ubah'}</button>
@@ -413,28 +406,28 @@ export default function App() {
             </section>
 
             <section>
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-4">Klik Stiker untuk Tambah</h3>
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-4">Tambah Stiker</h3>
                 <div className="grid grid-cols-6 gap-2">
                     {activePreset.stickers.map((s, i) => (
                         <button 
                             key={i} 
                             onClick={() => setStickers([...stickers, { id: Date.now(), icon: s, x: 40, y: 40 }])}
-                            className="aspect-square flex items-center justify-center text-2xl bg-stone-50 rounded-xl hover:scale-110 active:scale-90 transition-all border border-transparent hover:border-stone-200"
+                            className="aspect-square flex items-center justify-center text-xl sm:text-2xl bg-stone-50 rounded-xl hover:scale-110 active:scale-90 transition-all border border-transparent hover:border-stone-200"
                         >
                             {s}
                         </button>
                     ))}
-                    <button onClick={() => setStickers([])} className="aspect-square flex items-center justify-center bg-stone-100 text-stone-400 rounded-xl hover:text-red-500 transition-colors"><Trash2 size={18}/></button>
+                    <button onClick={() => setStickers([])} className="aspect-square flex items-center justify-center bg-stone-100 text-stone-400 rounded-xl hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
                 </div>
             </section>
           </div>
         </div>
 
-        <div className="p-8 border-t bg-stone-50/30">
+        <div className="p-6 sm:p-8 border-t bg-white sticky bottom-0 z-40">
           <button 
             onClick={saveToGallery}
             disabled={photos.length === 0}
-            className="w-full py-5 bg-black text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-xl hover:bg-stone-800 transition-all flex items-center justify-center gap-2 disabled:opacity-20"
+            className="w-full py-4 sm:py-5 bg-black text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-xl hover:bg-stone-800 transition-all flex items-center justify-center gap-2 disabled:opacity-20 active:scale-95"
           >
             <Download size={16} /> Simpan Foto
           </button>
@@ -446,8 +439,9 @@ export default function App() {
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f5f5f4; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f5f5f4; margin: 0; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </div>
   );
