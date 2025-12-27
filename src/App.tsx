@@ -3,7 +3,8 @@ import {
   Camera, Heart, Star, Sparkles, Trash2, 
   Download, ChevronLeft, Palette, 
   Flame, Moon, CameraIcon, RefreshCcw,
-  Layers, Smile, X, Check, Clock, Music
+  Layers, Smile, X, Check, Clock, Music,
+  Layout, Edit3
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -93,6 +94,7 @@ const PRESETS: Record<Category, Preset[]> = {
 
 export default function App() {
   const [view, setView] = useState<'home' | 'studio'>('home');
+  const [activeTab, setActiveTab] = useState<'camera' | 'edit'>('camera');
   const [activeCategory, setActiveCategory] = useState<Category>('BADDIE');
   const [activePreset, setActivePreset] = useState<Preset>(PRESETS['BADDIE'][0]);
   const [customBg, setCustomBg] = useState(activePreset.defaultBg);
@@ -114,7 +116,7 @@ export default function App() {
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' } 
+        video: { width: { ideal: 1080 }, height: { ideal: 1080 }, facingMode: 'user' } 
       });
       if (videoRef.current) videoRef.current.srcObject = stream;
     } catch (err) { console.error(err); }
@@ -236,22 +238,22 @@ export default function App() {
 
   if (view === 'home') {
     return (
-      <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center p-6 sm:p-8">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 sm:p-8">
         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="text-center w-full max-w-5xl">
           <h1 className="text-5xl sm:text-7xl font-black italic mb-2 tracking-tighter">Kawaibooth</h1>
-          <p className="text-[8px] sm:text-[9px] tracking-[0.5em] sm:tracking-[1em] uppercase text-stone-400 mb-12 sm:mb-16">Premium Digital Photostrip</p>
+          <p className="text-[10px] tracking-[0.5em] uppercase text-stone-400 mb-12">Digital Photostrip Archive</p>
           
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
             {(Object.keys(CATEGORIES) as Category[]).map(cat => (
               <button 
                 key={cat}
                 onClick={() => { setActiveCategory(cat); setActivePreset(PRESETS[cat][0]); setView('studio'); startCamera(); }}
-                className="group flex flex-col items-center gap-3 sm:gap-4 p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] bg-white border border-stone-100 hover:border-black transition-all active:scale-95 shadow-sm hover:shadow-xl"
+                className="flex flex-col items-center gap-3 p-6 rounded-[2.5rem] bg-stone-50 hover:bg-black hover:text-white transition-all active:scale-95 border border-transparent shadow-sm"
               >
-                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center bg-stone-50 group-hover:bg-black group-hover:text-white transition-colors">
-                  {React.createElement(CATEGORIES[cat].icon, { size: 20 })}
+                <div className="w-12 h-12 flex items-center justify-center">
+                  {React.createElement(CATEGORIES[cat].icon, { size: 24 })}
                 </div>
-                <span className="text-[9px] sm:text-[10px] font-bold tracking-widest uppercase">{cat}</span>
+                <span className="text-[9px] font-bold tracking-widest uppercase">{cat}</span>
               </button>
             ))}
           </div>
@@ -261,176 +263,196 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen bg-stone-100 flex flex-col md:flex-row overflow-hidden font-sans text-zinc-900">
-      {/* LEFT: CAMERA AREA */}
-      <div className="flex-1 relative flex flex-col border-r bg-white min-h-[50vh] md:min-h-0">
-        <div className="p-3 sm:p-4 border-b flex justify-between items-center bg-white z-20">
-            <button onClick={() => setView('home')} className="p-2 hover:bg-stone-100 rounded-full transition-colors"><ChevronLeft size={20}/></button>
-            <div className="flex gap-1 sm:gap-2">
-               {[1, 2, 4, 6, 8].map(n => (
+    <div className="h-screen bg-stone-50 flex flex-col overflow-hidden font-sans text-zinc-900">
+      {/* HEADER */}
+      <div className="h-16 px-4 flex items-center justify-between bg-white border-b shrink-0">
+        <button onClick={() => setView('home')} className="p-2 -ml-2 rounded-full active:bg-stone-100">
+          <ChevronLeft size={24} />
+        </button>
+        <div className="flex bg-stone-100 p-1 rounded-full">
+          <button 
+            onClick={() => setActiveTab('camera')}
+            className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all ${activeTab === 'camera' ? 'bg-white shadow-sm text-black' : 'text-stone-400'}`}
+          >
+            Kamera
+          </button>
+          <button 
+            onClick={() => setActiveTab('edit')}
+            className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all ${activeTab === 'edit' ? 'bg-white shadow-sm text-black' : 'text-stone-400'}`}
+          >
+            Edit Strip
+          </button>
+        </div>
+        <div className="w-8" />
+      </div>
+
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+        {/* CAMERA VIEW (Visible when Tab is Camera) */}
+        <div className={`flex-1 flex flex-col relative transition-all duration-300 ${activeTab === 'camera' ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 hidden md:flex'}`}>
+          <div className="flex-1 flex flex-col items-center justify-center p-4">
+            <div className="relative w-full max-w-lg aspect-square sm:aspect-[4/3] bg-black rounded-3xl overflow-hidden shadow-2xl">
+              <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover scale-x-[-1]" />
+              <AnimatePresence>
+                {timer !== null && (
+                  <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 1.5, opacity: 0 }} className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-30">
+                    <span className="text-9xl font-black italic text-white drop-shadow-2xl">{timer}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              {isCapturing && <div className="absolute inset-0 bg-white z-40" />}
+            </div>
+
+            {/* Layout Counter on Camera */}
+            <div className="mt-6 flex gap-2">
+               {[1, 2, 4, 6].map(n => (
                  <button 
                   key={n} 
                   onClick={() => {setLayoutCount(n); setPhotos([])}}
-                  className={`text-[9px] sm:text-[10px] font-black w-8 h-8 sm:w-10 sm:h-10 rounded-full border transition-all ${layoutCount === n ? 'bg-black text-white border-black' : 'bg-stone-50 border-stone-100 text-stone-400'}`}
+                  className={`w-10 h-10 rounded-full border text-[10px] font-black transition-all ${layoutCount === n ? 'bg-black text-white border-black' : 'bg-white text-stone-400'}`}
                  >
                    {n}
                  </button>
                ))}
             </div>
-            <div className="w-10 hidden sm:block" />
-        </div>
+          </div>
 
-        <div className="flex-1 flex items-center justify-center p-4 sm:p-8 bg-stone-50 relative overflow-hidden">
-          <div className="relative w-full max-w-2xl aspect-[4/3] bg-black rounded-3xl sm:rounded-[2.5rem] overflow-hidden shadow-2xl">
-            <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover scale-x-[-1]" />
-            <AnimatePresence>
-              {timer !== null && (
-                <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 1.5, opacity: 0 }} className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-30">
-                  <span className="text-8xl sm:text-[10rem] font-black italic text-white drop-shadow-2xl">{timer}</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            {isCapturing && <div className="absolute inset-0 bg-white z-40" />}
+          {/* BOTTOM BAR CAMERA */}
+          <div className="h-32 bg-white border-t flex items-center justify-between px-8 shrink-0">
+             <button onClick={() => setPhotos([])} className="p-3 text-stone-300 active:text-red-500 transition-colors">
+               <RefreshCcw size={20}/>
+             </button>
+             
+             <button 
+               onClick={handleCaptureRequest}
+               disabled={photos.length >= layoutCount || timer !== null}
+               className="w-20 h-20 rounded-full bg-black text-white flex items-center justify-center shadow-2xl active:scale-90 transition-all disabled:opacity-20"
+             >
+               <Camera size={32} />
+             </button>
+
+             <div className="flex -space-x-3 overflow-hidden">
+                {photos.slice(-3).map((p, i) => (
+                  <div key={i} className="w-10 h-10 rounded-lg border-2 border-white bg-stone-200 overflow-hidden shadow-sm">
+                    <img src={p} className="w-full h-full object-cover" />
+                  </div>
+                ))}
+             </div>
           </div>
         </div>
 
-        {/* PHOTO PREVIEW RAIL */}
-        <div className="h-24 sm:h-28 bg-white border-t flex items-center justify-between px-4 sm:px-8 gap-4 overflow-x-auto no-scrollbar">
-           <button onClick={() => setPhotos([])} className="p-3 shrink-0 rounded-full hover:bg-red-50 text-stone-300 hover:text-red-400 transition-colors"><RefreshCcw size={18}/></button>
-           
-           <button 
-             onClick={handleCaptureRequest}
-             disabled={photos.length >= layoutCount || timer !== null}
-             className="w-14 h-14 sm:w-18 sm:h-18 shrink-0 rounded-full bg-black text-white flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-20"
-           >
-             <Camera size={24} />
-           </button>
+        {/* EDITOR VIEW (Visible when Tab is Edit) */}
+        <div className={`w-full md:w-[450px] bg-white flex flex-col border-l transition-all duration-300 ${activeTab === 'edit' ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0 hidden md:flex overflow-y-auto'}`}>
+          <div className="flex-1 overflow-y-auto no-scrollbar pb-32">
+            
+            {/* PREVIEW STRIP */}
+            <div className="flex justify-center p-8 bg-stone-50">
+              <div 
+                className="w-[240px] p-5 shadow-2xl relative"
+                style={{ backgroundColor: customBg }}
+              >
+                  <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 flex flex-wrap gap-4 p-4 text-xl">
+                     {Array.from({length: 40}).map((_, i) => <span key={i}>{activePreset.pattern}</span>)}
+                  </div>
 
-           <div className="flex -space-x-2 sm:-space-x-3 overflow-hidden shrink-0">
-              {photos.map((p, i) => (
-                <div key={i} className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border-2 border-white bg-stone-200 overflow-hidden shadow-sm">
-                  <img src={p} className="w-full h-full object-cover" />
-                </div>
-              ))}
-              {Array.from({length: Math.max(0, layoutCount - photos.length)}).map((_, i) => (
-                <div key={i} className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border-2 border-dashed border-stone-200 bg-stone-50" />
-              ))}
-           </div>
-        </div>
-      </div>
+                  <div className="space-y-3 relative z-10">
+                      {Array.from({length: layoutCount}).map((_, i) => (
+                        <div key={i} className="aspect-[4/3] bg-black/5 rounded-sm overflow-hidden relative group">
+                           {photos[i] ? (
+                              <img src={photos[i]} className="w-full h-full object-cover" />
+                           ) : (
+                               <div className="w-full h-full flex items-center justify-center opacity-10"><Camera size={14}/></div>
+                           )}
+                        </div>
+                      ))}
+                  </div>
 
-      {/* RIGHT: CUSTOMIZER AREA */}
-      <div className="w-full md:w-[450px] bg-white flex flex-col shadow-2xl z-10 overflow-y-auto no-scrollbar pb-10 md:pb-0">
-        <div className="flex-1 p-6 sm:p-8 space-y-8 sm:space-y-10">
-          
-          {/* PREVIEW TICKET (Scrollable on Mobile) */}
-          <div className="flex justify-center sticky top-0 md:relative z-30 bg-white/80 backdrop-blur-md md:bg-transparent py-4 md:py-0 rounded-b-3xl">
-            <div 
-              className="w-[200px] sm:w-[260px] p-4 sm:p-6 shadow-2xl relative transition-all duration-500 origin-top"
-              style={{ backgroundColor: customBg }}
-            >
-                <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 flex flex-wrap gap-2 sm:gap-4 p-4 text-lg sm:text-xl">
-                   {Array.from({length: 40}).map((_, i) => <span key={i}>{activePreset.pattern}</span>)}
-                </div>
+                  {stickers.map(s => (
+                      <motion.div drag dragMomentum={false} key={s.id} className="absolute text-4xl z-20 cursor-move" style={{ top: `${s.y}%`, left: `${s.x}%` }}>
+                          {s.icon}
+                      </motion.div>
+                  ))}
 
-                <div className="space-y-2 sm:space-y-3 relative z-10">
-                    {Array.from({length: layoutCount}).map((_, i) => (
-                      <div key={i} className="aspect-[4/3] bg-black/5 rounded-sm overflow-hidden relative group">
-                         {photos[i] ? (
-                            <>
-                                <img src={photos[i]} className="w-full h-full object-cover" />
-                                <button onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 p-1 bg-white/80 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><X size={10}/></button>
-                            </>
-                         ) : (
-                             <div className="w-full h-full flex items-center justify-center opacity-10"><Camera size={14}/></div>
-                         )}
-                      </div>
+                  <div className="mt-8 relative" style={{ color: activePreset.textColor }}>
+                      {activePreset.spotify ? (
+                          <div className="opacity-80">
+                               <div className="h-0.5 w-full bg-current/20 mb-2" />
+                               <div className="flex justify-between items-center">
+                                  <span className="text-[8px] font-bold">KAWAIBOOTH PLAYER</span>
+                                  <Music size={10} />
+                               </div>
+                          </div>
+                      ) : (
+                          <div className="text-right">
+                              <p className="text-sm font-serif italic font-black">Kawaibooth</p>
+                              <p className="text-[5px] uppercase tracking-widest opacity-40">ARCHIVE 2025</p>
+                          </div>
+                      )}
+                  </div>
+              </div>
+            </div>
+
+            {/* EDIT TOOLS */}
+            <div className="p-6 space-y-8">
+              {/* Presets - Scroll Horizontal */}
+              <section>
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-3">Pilih Gaya</h3>
+                  <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+                      {PRESETS[activeCategory].map(p => (
+                          <button 
+                              key={p.id} 
+                              onClick={() => setActivePreset(p)}
+                              className={`shrink-0 px-5 py-3 rounded-2xl text-[10px] font-bold border transition-all ${activePreset.id === p.id ? 'bg-black text-white border-black shadow-lg' : 'bg-stone-50 border-stone-100 text-stone-400'}`}
+                          >
+                              {p.name}
+                          </button>
+                      ))}
+                  </div>
+              </section>
+
+              {/* Color Picker */}
+              <section className="bg-stone-50 p-5 rounded-3xl">
+                  <div className="flex items-center justify-between mb-3">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">Custom Warna</span>
+                      <input type="color" value={customBg} onChange={e => setCustomBg(e.target.value)} className="w-8 h-8 rounded-full cursor-pointer bg-transparent border-none overflow-hidden" />
+                  </div>
+                  <div className="flex gap-2">
+                    {['#ffffff', '#000000', '#f4ecd8', '#ffb7c5', '#e11d48'].map(c => (
+                      <button key={c} onClick={() => setCustomBg(c)} className="w-8 h-8 rounded-full border border-white" style={{ backgroundColor: c }} />
                     ))}
-                </div>
+                  </div>
+              </section>
 
-                {stickers.map(s => (
-                    <motion.div drag dragMomentum={false} key={s.id} className="absolute text-3xl sm:text-4xl z-20 cursor-move" style={{ top: `${s.y}%`, left: `${s.x}%` }}>
-                        {s.icon}
-                    </motion.div>
-                ))}
-
-                <div className="mt-6 sm:mt-8 relative" style={{ color: activePreset.textColor }}>
-                    {activePreset.spotify ? (
-                        <div className="opacity-80">
-                             <div className="h-0.5 w-full bg-current/20 mb-2" />
-                             <div className="flex justify-between items-center">
-                                <span className="text-[7px] sm:text-[8px] font-bold tracking-tighter">KAWAIBOOTH PLAYER</span>
-                                <Music size={10} />
-                             </div>
-                        </div>
-                    ) : (
-                        <div className="text-right">
-                            <p className="text-xs sm:text-sm font-serif italic font-black leading-none">Kawaibooth</p>
-                            <p className="text-[5px] uppercase tracking-widest opacity-40">Archive C 2025</p>
-                        </div>
-                    )}
-                </div>
+              {/* Stickers - Grid */}
+              <section>
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-stone-400">Stiker</h3>
+                    <button onClick={() => setStickers([])} className="text-[10px] font-bold text-red-500 uppercase">Hapus Semua</button>
+                  </div>
+                  <div className="grid grid-cols-6 gap-2">
+                      {activePreset.stickers.map((s, i) => (
+                          <button 
+                              key={i} 
+                              onClick={() => setStickers([...stickers, { id: Date.now(), icon: s, x: 40, y: 40 }])}
+                              className="aspect-square flex items-center justify-center text-2xl bg-stone-50 rounded-xl active:scale-90 transition-all"
+                          >
+                              {s}
+                          </button>
+                      ))}
+                  </div>
+              </section>
             </div>
           </div>
 
-          {/* CONTROLS */}
-          <div className="space-y-6 sm:space-y-8">
-            <section>
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-4">Tema: {activeCategory}</h3>
-                <div className="grid grid-cols-2 gap-2">
-                    {PRESETS[activeCategory].map(p => (
-                        <button 
-                            key={p.id} 
-                            onClick={() => setActivePreset(p)}
-                            className={`px-3 py-3 rounded-2xl text-[9px] sm:text-[10px] font-bold border transition-all active:scale-95 ${activePreset.id === p.id ? 'bg-black text-white border-black shadow-lg' : 'bg-stone-50 border-stone-100 text-stone-400'}`}
-                        >
-                            {p.name}
-                        </button>
-                    ))}
-                </div>
-            </section>
-
-            <section className="bg-stone-50 p-5 rounded-[1.5rem] border border-stone-100">
-                <div className="flex items-center justify-between mb-4">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">Warna Frame</span>
-                    <button onClick={() => setShowColorPicker(!showColorPicker)} className="text-[10px] font-black text-rose-500 uppercase">{showColorPicker ? 'Tutup' : 'Ubah'}</button>
-                </div>
-                {showColorPicker ? (
-                    <input type="color" value={customBg} onChange={e => setCustomBg(e.target.value)} className="w-full h-10 rounded-xl cursor-pointer bg-transparent border-none" />
-                ) : (
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full border shadow-sm" style={{ backgroundColor: customBg }} />
-                        <span className="text-[10px] font-mono font-bold">{customBg.toUpperCase()}</span>
-                    </div>
-                )}
-            </section>
-
-            <section>
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-4">Tambah Stiker</h3>
-                <div className="grid grid-cols-6 gap-2">
-                    {activePreset.stickers.map((s, i) => (
-                        <button 
-                            key={i} 
-                            onClick={() => setStickers([...stickers, { id: Date.now(), icon: s, x: 40, y: 40 }])}
-                            className="aspect-square flex items-center justify-center text-xl sm:text-2xl bg-stone-50 rounded-xl hover:scale-110 active:scale-90 transition-all border border-transparent hover:border-stone-200"
-                        >
-                            {s}
-                        </button>
-                    ))}
-                    <button onClick={() => setStickers([])} className="aspect-square flex items-center justify-center bg-stone-100 text-stone-400 rounded-xl hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
-                </div>
-            </section>
+          {/* FLOATING SAVE BUTTON */}
+          <div className="absolute bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-xl border-t z-50">
+            <button 
+              onClick={saveToGallery}
+              disabled={photos.length === 0}
+              className="w-full py-4 bg-black text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl active:scale-95 disabled:opacity-20 flex items-center justify-center gap-2"
+            >
+              <Download size={16} /> Simpan Hasil
+            </button>
           </div>
-        </div>
-
-        <div className="p-6 sm:p-8 border-t bg-white sticky bottom-0 z-40">
-          <button 
-            onClick={saveToGallery}
-            disabled={photos.length === 0}
-            className="w-full py-4 sm:py-5 bg-black text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-xl hover:bg-stone-800 transition-all flex items-center justify-center gap-2 disabled:opacity-20 active:scale-95"
-          >
-            <Download size={16} /> Simpan Foto
-          </button>
         </div>
       </div>
 
@@ -439,7 +461,7 @@ export default function App() {
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f5f5f4; margin: 0; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #ffffff; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
